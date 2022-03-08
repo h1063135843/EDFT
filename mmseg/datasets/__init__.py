@@ -11,11 +11,12 @@ from .pascal_context import PascalContextDataset, PascalContextDataset59
 from .stare import STAREDataset
 from .voc import PascalVOCDataset
 from .Vaihingen import VaihingenDataset
+from .scannet import ScanNet2d_Dataset
 
 __all__ = [
     'CustomDataset', 'build_dataloader', 'ConcatDataset', 'RepeatDataset',
     'DATASETS', 'build_dataset', 'PIPELINES', 'CityscapesDataset',
     'PascalVOCDataset', 'ADE20KDataset', 'PascalContextDataset',
     'PascalContextDataset59', 'ChaseDB1Dataset', 'DRIVEDataset', 'HRFDataset',
-    'STAREDataset','VaihingenDataset'
+    'STAREDataset','VaihingenDataset','ScanNet2d_Dataset'
 ]
