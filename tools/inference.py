@@ -179,8 +179,8 @@ def main():
 
         with torch.no_grad():
             result, seg_logit = model(return_loss=False, **data)
-        seg_logits.append(255 *
-                          seg_logit.squeeze(0).permute(1, 2, 0).byte().cpu())
+        seg_logits.append(
+            (255 * seg_logit.squeeze(0).permute(1, 2, 0)).byte().cpu())
 
         batch_size = len(result)
         for _ in range(batch_size):
