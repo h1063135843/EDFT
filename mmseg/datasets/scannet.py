@@ -51,7 +51,7 @@ class ScanNet2d_Dataset(CustomDataset):
         super(ScanNet2d_Dataset, self).__init__(
             img_suffix='.jpg',
             seg_map_suffix='.png',
-            reduce_zero_label=True,
+            reduce_zero_label=False,
             **kwargs)
 
     def get_gt_seg_map_by_idx(self, index):

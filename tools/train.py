@@ -8,7 +8,7 @@ import warnings
 
 import mmcv
 import torch
-from mmcv.cnn.utils import revert_sync_batchnorm
+# from mmcv.cnn.utils import revert_sync_batchnorm
 from mmcv.runner import get_dist_info, init_dist
 from mmcv.utils import Config, DictAction, get_git_hash
 
@@ -168,13 +168,13 @@ def main():
         test_cfg=cfg.get('test_cfg'))
     model.init_weights()
 
-    # SyncBN is not support for DP
-    if not distributed:
-        warnings.warn(
-            'SyncBN is only supported with DDP. To be compatible with DP, '
-            'we convert SyncBN to BN. Please use dist_train.sh which can '
-            'avoid this error.')
-        model = revert_sync_batchnorm(model)
+    # # SyncBN is not support for DP
+    # if not distributed:
+    #     warnings.warn(
+    #         'SyncBN is only supported with DDP. To be compatible with DP, '
+    #         'we convert SyncBN to BN. Please use dist_train.sh which can '
+    #         'avoid this error.')
+    #     model = revert_sync_batchnorm(model)
 
     logger.info(model)
 

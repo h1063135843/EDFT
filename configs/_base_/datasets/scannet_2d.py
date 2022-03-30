@@ -6,7 +6,7 @@ img_norm_cfg = dict(
 crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', reduce_zero_label=True),
+    dict(type='LoadAnnotations', reduce_zero_label=False),
     dict(
         type='ImageSegClassMapping',
         valid_cat_ids=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28,
@@ -49,7 +49,7 @@ data = dict(
     val=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/validation',
+        img_dir='images/validation_subset',
         ann_dir='nyu_annotations/validation',
         pipeline=test_pipeline),
     test=dict(
