@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import os.path as osp
-
 import mmcv
 import numpy as np
-
+import os.path as osp
+import cv2 as cv
+from mmseg.ops import resize
 from ..builder import PIPELINES
 
 
@@ -176,8 +176,7 @@ class ImageSegClassMapping(object):
 
         # build cat_id to class index mapping
         neg_cls = len(valid_cat_ids)
-        self.cat_id2class = np.ones(
-            self.max_cat_id + 1, dtype=np.int) * 255
+        self.cat_id2class = np.ones(self.max_cat_id + 1, dtype=np.int) * 255
         for cls_idx, cat_id in enumerate(valid_cat_ids):
             self.cat_id2class[cat_id] = cls_idx
 
@@ -206,4 +205,37 @@ class ImageSegClassMapping(object):
         repr_str = self.__class__.__name__
         repr_str += f'(valid_cat_ids={self.valid_cat_ids}, '
         repr_str += f'max_cat_id={self.max_cat_id})'
+        return repr_str
+
+
+@PIPELINES.register_module()
+class LoadDepthImage(object):
+
+    def __init__(self,
+                 root_dir,
+                 depth_path='images\\depth',
+                 color_suffix='jpg',
+                 depth_suffix='png'):
+        self.color_suffix = color_suffix
+        self.depth_suffix = depth_suffix
+        self.depth_prefix = osp.join(root_dir, depth_path)
+
+    def __call__(self, results):
+        assert results['img_prefix'] is not None
+        depth_filename = osp.join(
+            self.depth_prefix,
+            results['img_info']['filename'].replace(self.color_suffix,
+                                                    self.depth_suffix))
+
+        depth = mmcv.imread(depth_filename, 'unchanged').astype(np.float32)
+        depth = cv.resize(
+            depth, results['img'].shape[:2], interpolation=cv.INTER_NEAREST)
+        depth = np.expand_dims(np.transpose(depth), 2)
+        results['img'] = np.concatenate((results['img'], depth), axis=2)
+
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        repr_str = self.__class__.__name__
         return repr_str

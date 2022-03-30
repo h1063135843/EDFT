@@ -37,7 +37,7 @@ def load_annotation2d(ann_filename):
     return results['gt_semantic_seg']
 
 
-def get_feature_per_image(points, img_feature, depth, depth2img):
+def get_feature_per_image(points, img_feature, depth, depth2img, range=48):
     h, w, c = img_feature.shape
     pts_2d = points_cam2img(points, depth2img, True)
 
@@ -51,10 +51,13 @@ def get_feature_per_image(points, img_feature, depth, depth2img):
     pts_2d = pts_2d.long()
     x, y = pts_2d[flag, 0], pts_2d[flag, 1]
     raw_z = depth[y, x]
-    depth_constrain = torch.gt(z, raw_z - 30) & torch.lt(z, raw_z + 30)
-    tmp=flag.clone()
-    flag[tmp] = depth_constrain
-    x, y = x[depth_constrain], y[depth_constrain]
+
+    if range is not None:
+        depth_constrain = torch.gt(z, raw_z - range) & torch.lt(
+            z, raw_z + range)
+        tmp = flag.clone()
+        flag[tmp] = depth_constrain
+        x, y = x[depth_constrain], y[depth_constrain]
 
     pts_img = torch.full([pts_2d.shape[0], c], 0).byte()
     pts_img[flag] = img_feature[y, x]
@@ -112,7 +115,7 @@ def get_points(scene, scan_list, info):
 mode = 'val'
 global_info = get_info(mode)
 global_list = get_scannet_list(mode)
-save_path = 'ground'
+save_path = 'bisenet'
 # save_path = '056800'
 mmcv.mkdir_or_exist(osp.join(rootdir, save_path))
 
@@ -122,7 +125,7 @@ def save_logit_by_one_scene(scene,
                             arrays,
                             filelist,
                             save=True,
-                            aggregation='max'):
+                            aggregation='avg'):
     points = get_points(scene, global_list, global_info)
     depth2img = get_depth2img_by_scene_name(scene, global_list, global_info)
 
@@ -146,6 +149,10 @@ def save_logit_by_one_scene(scene,
         points_sum = torch.sum(points_aug, 0, keepdim=False)
         count = torch.count_nonzero(points_aug, 0)
         points_aug = points_sum / count
+        # in case of count=0
+        points_aug = torch.where(
+            torch.isnan(points_aug), torch.full_like(points_aug, 0),
+            points_aug)
 
     if save:
         points = np.concatenate([points, points_aug.numpy()], axis=1)
