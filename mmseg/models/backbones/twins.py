@@ -1,3 +1,4 @@
+# Copyright (c) OpenMMLab. All rights reserved.
 import math
 import warnings
 
@@ -9,13 +10,11 @@ from mmcv.cnn.bricks.drop import build_dropout
 from mmcv.cnn.bricks.transformer import FFN
 from mmcv.cnn.utils.weight_init import (constant_init, normal_init,
                                         trunc_normal_init)
-from mmcv.runner import BaseModule, ModuleList
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from mmseg.models.backbones.mit import EfficientMultiheadAttention
-from mmseg.models.builder import BACKBONES
+from mmseg.registry import MODELS
 from ..utils.embed import PatchEmbed
-
 
 class GlobalSubsampledAttention(EfficientMultiheadAttention):
     """Global Sub-sampled Attention (Spatial Reduction Attention)
@@ -61,7 +60,7 @@ class GlobalSubsampledAttention(EfficientMultiheadAttention):
                  norm_cfg=dict(type='LN'),
                  sr_ratio=1,
                  init_cfg=None):
-        super(GlobalSubsampledAttention, self).__init__(
+        super().__init__(
             embed_dims,
             num_heads,
             attn_drop=attn_drop,
@@ -111,7 +110,7 @@ class GSAEncoderLayer(BaseModule):
                  norm_cfg=dict(type='LN'),
                  sr_ratio=1.,
                  init_cfg=None):
-        super(GSAEncoderLayer, self).__init__(init_cfg=init_cfg)
+        super().__init__(init_cfg=init_cfg)
 
         self.norm1 = build_norm_layer(norm_cfg, embed_dims, postfix=1)[1]
         self.attn = GlobalSubsampledAttention(
@@ -171,7 +170,7 @@ class LocallyGroupedSelfAttention(BaseModule):
                  proj_drop_rate=0.,
                  window_size=1,
                  init_cfg=None):
-        super(LocallyGroupedSelfAttention, self).__init__(init_cfg=init_cfg)
+        super().__init__(init_cfg=init_cfg)
 
         assert embed_dims % num_heads == 0, f'dim {embed_dims} should be ' \
                                             f'divided by num_heads ' \
@@ -283,7 +282,7 @@ class LSAEncoderLayer(BaseModule):
                  window_size=1,
                  init_cfg=None):
 
-        super(LSAEncoderLayer, self).__init__(init_cfg=init_cfg)
+        super().__init__(init_cfg=init_cfg)
 
         self.norm1 = build_norm_layer(norm_cfg, embed_dims, postfix=1)[1]
         self.attn = LocallyGroupedSelfAttention(embed_dims, num_heads,
@@ -324,7 +323,7 @@ class ConditionalPositionEncoding(BaseModule):
     """
 
     def __init__(self, in_channels, embed_dims=768, stride=1, init_cfg=None):
-        super(ConditionalPositionEncoding, self).__init__(init_cfg=init_cfg)
+        super().__init__(init_cfg=init_cfg)
         self.proj = nn.Conv2d(
             in_channels,
             embed_dims,
@@ -348,7 +347,7 @@ class ConditionalPositionEncoding(BaseModule):
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class PCPVT(BaseModule):
     """The backbone of Twins-PCPVT.
 
@@ -400,7 +399,7 @@ class PCPVT(BaseModule):
                  norm_after_stage=False,
                  pretrained=None,
                  init_cfg=None):
-        super(PCPVT, self).__init__(init_cfg=init_cfg)
+        super().__init__(init_cfg=init_cfg)
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be set at the same time'
         if isinstance(pretrained, str):
@@ -470,7 +469,7 @@ class PCPVT(BaseModule):
 
     def init_weights(self):
         if self.init_cfg is not None:
-            super(PCPVT, self).init_weights()
+            super().init_weights()
         else:
             for m in self.modules():
                 if isinstance(m, nn.Linear):
@@ -507,7 +506,7 @@ class PCPVT(BaseModule):
         return tuple(outputs)
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class SVT(PCPVT):
     """The backbone of Twins-SVT.
 
@@ -562,11 +561,11 @@ class SVT(PCPVT):
                  norm_after_stage=True,
                  pretrained=None,
                  init_cfg=None):
-        super(SVT, self).__init__(in_channels, embed_dims, patch_sizes,
-                                  strides, num_heads, mlp_ratios, out_indices,
-                                  qkv_bias, drop_rate, attn_drop_rate,
-                                  drop_path_rate, norm_cfg, depths, sr_ratios,
-                                  norm_after_stage, pretrained, init_cfg)
+        super().__init__(in_channels, embed_dims, patch_sizes, strides,
+                         num_heads, mlp_ratios, out_indices, qkv_bias,
+                         drop_rate, attn_drop_rate, drop_path_rate, norm_cfg,
+                         depths, sr_ratios, norm_after_stage, pretrained,
+                         init_cfg)
         # transformer encoder
         dpr = [
             x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))

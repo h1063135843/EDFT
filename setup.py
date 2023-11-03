@@ -18,7 +18,7 @@ version_file = 'mmseg/version.py'
 
 
 def get_version():
-    with open(version_file, 'r') as f:
+    with open(version_file) as f:
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']
 
@@ -74,12 +74,11 @@ def parse_requirements(fname='requirements.txt', with_version=True):
             yield info
 
     def parse_require_file(fpath):
-        with open(fpath, 'r') as f:
+        with open(fpath) as f:
             for line in f.readlines():
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    for info in parse_line(line):
-                        yield info
+                    yield from parse_line(line)
 
     def gen_packages_items():
         if exists(require_fpath):
@@ -124,7 +123,7 @@ def add_mim_extension():
     else:
         return
 
-    filenames = ['tools', 'configs', 'model-index.yml']
+    filenames = ['tools', 'configs', 'model-index.yml', 'dataset-index.yml']
     repo_path = osp.dirname(__file__)
     mim_path = osp.join(repo_path, 'mmseg', '.mim')
     os.makedirs(mim_path, exist_ok=True)
@@ -176,7 +175,7 @@ if __name__ == '__main__':
         author='MMSegmentation Contributors',
         author_email='openmmlab@gmail.com',
         keywords='computer vision, semantic segmentation',
-        url='http://github.com/open-mmlab/mmsegmentation',
+        url='https://github.com/open-mmlab/mmsegmentation',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
         include_package_data=True,
         classifiers=[
@@ -189,14 +188,13 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.9',
         ],
         license='Apache License 2.0',
-        setup_requires=parse_requirements('requirements/build.txt'),
-        tests_require=parse_requirements('requirements/tests.txt'),
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
             'all': parse_requirements('requirements.txt'),
             'tests': parse_requirements('requirements/tests.txt'),
-            'build': parse_requirements('requirements/build.txt'),
             'optional': parse_requirements('requirements/optional.txt'),
+            'mim': parse_requirements('requirements/mminstall.txt'),
+            'multimodal': parse_requirements('requirements/multimodal.txt'),
         },
         ext_modules=[],
         zip_safe=False)

@@ -11,12 +11,9 @@ class MultiLevelNeck(nn.Module):
     """MultiLevelNeck.
 
     A neck structure connect vit backbone and decoder_heads.
-<<<<<<< HEAD
-=======
     modified in a way like ReAssembleBlock mentioned in the paper
         `Vision Transformers for Dense Prediction`
         https://arxiv.org/abs/2103.13413
->>>>>>> rgbd
 
     Args:
         in_channels (List[int]): Number of input channels per scale.

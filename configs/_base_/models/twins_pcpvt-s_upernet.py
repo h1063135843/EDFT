@@ -1,12 +1,21 @@
+checkpoint = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/twins/pcpvt_small_20220308-e638c41c.pth'  # noqa
+
 # model settings
 backbone_norm_cfg = dict(type='LN')
 norm_cfg = dict(type='SyncBN', requires_grad=True)
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    bgr_to_rgb=True,
+    pad_val=0,
+    seg_pad_val=255)
 model = dict(
     type='EncoderDecoder',
+    data_preprocessor=data_preprocessor,
     backbone=dict(
         type='PCPVT',
-        init_cfg=dict(
-            type='Pretrained', checkpoint='pretrained/pcpvt_small.pth'),
+        init_cfg=dict(type='Pretrained', checkpoint=checkpoint),
         in_channels=3,
         embed_dims=[64, 128, 320, 512],
         num_heads=[1, 2, 5, 8],

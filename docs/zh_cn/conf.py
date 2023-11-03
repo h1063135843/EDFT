@@ -25,10 +25,21 @@ project = 'MMSegmentation'
 copyright = '2020-2021, OpenMMLab'
 author = 'MMSegmentation Authors'
 version_file = '../../mmseg/version.py'
+=======
+docs/conf.py
+version_file = '../mmseg/version.py'
 
 
 def get_version():
     with open(version_file, 'r') as f:
+=======
+========
+version_file = '../../mmseg/version.py'
+
+
+def get_version():
+    with open(version_file) as f:
+        docs/zh_cn/conf.py
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']
 
@@ -49,10 +60,15 @@ extensions = [
 autodoc_mock_imports = [
     'matplotlib', 'pycocotools', 'mmseg.version', 'mmcv.ops'
 ]
+=======
+docs/conf.py
+========
 
 # Ignore >>> when copying code
 copybutton_prompt_text = r'>>> |\.\.\. '
 copybutton_prompt_is_regexp = True
+=======
+:docs/zh_cn/conf.py
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -117,12 +133,19 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+=======
+docs/conf.py
+
+language = 'en'
+========
 html_css_files = ['css/readthedocs.css']
 
 # Enable ::: for my_st
 myst_enable_extensions = ['colon_fence']
 
 language = 'zh-CN'
+=======
+docs/zh_cn/conf.py
 
 
 def builder_inited_handler(app):

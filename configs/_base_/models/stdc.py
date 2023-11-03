@@ -1,6 +1,14 @@
 norm_cfg = dict(type='BN', requires_grad=True)
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    bgr_to_rgb=True,
+    pad_val=0,
+    seg_pad_val=255)
 model = dict(
     type='EncoderDecoder',
+    data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
         type='STDCContextPathNet',
@@ -68,7 +76,7 @@ model = dict(
             in_index=0,
             norm_cfg=norm_cfg,
             concat_input=False,
-            align_corners=False,
+            align_corners=True,
             loss_decode=[
                 dict(
                     type='CrossEntropyLoss',

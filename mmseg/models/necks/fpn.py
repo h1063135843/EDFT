@@ -2,13 +2,13 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
-from mmcv.runner import BaseModule, auto_fp16
+from mmengine.model import BaseModule
 
-from mmseg.ops import resize
-from ..builder import NECKS
+from mmseg.registry import MODELS
+from ..utils import resize
 
 
-@NECKS.register_module()
+@MODELS.register_module()
 class FPN(BaseModule):
     """Feature Pyramid Network.
 
@@ -16,8 +16,8 @@ class FPN(BaseModule):
     Detection <https://arxiv.org/abs/1612.03144>`_.
 
     Args:
-        in_channels (List[int]): Number of input channels per scale.
-        out_channels (int): Number of output channels (used at each scale)
+        in_channels (list[int]): Number of input channels per scale.
+        out_channels (int): Number of output channels (used at each scale).
         num_outs (int): Number of output scales.
         start_level (int): Index of the start input backbone level used to
             build the feature pyramid. Default: 0.
@@ -30,7 +30,7 @@ class FPN(BaseModule):
             Only the following options are allowed
 
             - 'on_input': Last feat map of neck inputs (i.e. backbone feature).
-            - 'on_lateral':  Last feature map after lateral convs.
+            - 'on_lateral': Last feature map after lateral convs.
             - 'on_output': The last output feature map after fpn convs.
         extra_convs_on_inputs (bool, deprecated): Whether to apply extra convs
             on the original feature from the backbone. If True,
@@ -42,10 +42,10 @@ class FPN(BaseModule):
             Default: False.
         conv_cfg (dict): Config dict for convolution layer. Default: None.
         norm_cfg (dict): Config dict for normalization layer. Default: None.
-        act_cfg (str): Config dict for activation layer in ConvModule.
+        act_cfg (dict): Config dict for activation layer in ConvModule.
             Default: None.
         upsample_cfg (dict): Config dict for interpolate layer.
-            Default: `dict(mode='nearest')`
+            Default: dict(mode='nearest').
         init_cfg (dict or list[dict], optional): Initialization config dict.
 
     Example:
@@ -80,7 +80,7 @@ class FPN(BaseModule):
                  upsample_cfg=dict(mode='nearest'),
                  init_cfg=dict(
                      type='Xavier', layer='Conv2d', distribution='uniform')):
-        super(FPN, self).__init__(init_cfg)
+        super().__init__(init_cfg)
         assert isinstance(in_channels, list)
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -159,7 +159,6 @@ class FPN(BaseModule):
                     inplace=False)
                 self.fpn_convs.append(extra_fpn_conv)
 
-    @auto_fp16()
     def forward(self, inputs):
         assert len(inputs) == len(self.in_channels)
 

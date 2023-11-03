@@ -1,12 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import os.path as osp
+import mmengine.fileio as fileio
 
-from .builder import DATASETS
-from .custom import CustomDataset
+from mmseg.registry import DATASETS
+from .basesegdataset import BaseSegDataset
 
 
 @DATASETS.register_module()
-class HRFDataset(CustomDataset):
+class HRFDataset(BaseSegDataset):
     """HRF dataset.
 
     In segmentation map annotation for HRF, 0 stands for background, which is
@@ -14,15 +14,19 @@ class HRFDataset(CustomDataset):
     ``img_suffix`` is fixed to '.png' and ``seg_map_suffix`` is fixed to
     '.png'.
     """
+    METAINFO = dict(
+        classes=('background', 'vessel'),
+        palette=[[120, 120, 120], [6, 230, 230]])
 
-    CLASSES = ('background', 'vessel')
-
-    PALETTE = [[120, 120, 120], [6, 230, 230]]
-
-    def __init__(self, **kwargs):
-        super(HRFDataset, self).__init__(
-            img_suffix='.png',
-            seg_map_suffix='.png',
-            reduce_zero_label=False,
+    def __init__(self,
+                 img_suffix='.png',
+                 seg_map_suffix='.png',
+                 reduce_zero_label=False,
+                 **kwargs) -> None:
+        super().__init__(
+            img_suffix=img_suffix,
+            seg_map_suffix=seg_map_suffix,
+            reduce_zero_label=reduce_zero_label,
             **kwargs)
-        assert osp.exists(self.img_dir)
+        assert fileio.exists(
+            self.data_prefix['img_path'], backend_args=self.backend_args)

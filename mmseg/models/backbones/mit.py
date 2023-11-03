@@ -4,14 +4,15 @@ import warnings
 
 import torch
 import torch.nn as nn
+import torch.utils.checkpoint as cp
 from mmcv.cnn import Conv2d, build_activation_layer, build_norm_layer
 from mmcv.cnn.bricks.drop import build_dropout
 from mmcv.cnn.bricks.transformer import MultiheadAttention
-from mmcv.cnn.utils.weight_init import (constant_init, normal_init,
+from mmengine.model import BaseModule, ModuleList, Sequential
+from mmengine.model.weight_init import (constant_init, normal_init,
                                         trunc_normal_init)
-from mmcv.runner import BaseModule, ModuleList, Sequential
 
-from ..builder import BACKBONES
+from mmseg.registry import MODELS
 from ..utils import PatchEmbed, nchw_to_nlc, nlc_to_nchw
 
 
@@ -43,7 +44,7 @@ class MixFFN(BaseModule):
                  ffn_drop=0.,
                  dropout_layer=None,
                  init_cfg=None):
-        super(MixFFN, self).__init__(init_cfg)
+        super().__init__(init_cfg)
 
         self.embed_dims = embed_dims
         self.feedforward_channels = feedforward_channels
@@ -235,6 +236,8 @@ class TransformerEncoderLayer(BaseModule):
             Default:None.
         sr_ratio (int): The ratio of spatial reduction of Efficient Multi-head
             Attention of Segformer. Default: 1.
+        with_cp (bool): Use checkpoint or not. Using checkpoint will save
+            some memory while slowing down the training speed. Default: False.
     """
 
     def __init__(self,
@@ -248,8 +251,9 @@ class TransformerEncoderLayer(BaseModule):
                  act_cfg=dict(type='GELU'),
                  norm_cfg=dict(type='LN'),
                  batch_first=True,
-                 sr_ratio=1):
-        super(TransformerEncoderLayer, self).__init__()
+                 sr_ratio=1,
+                 with_cp=False):
+        super().__init__()
 
         # The ret[0] of build_norm_layer is norm name.
         self.norm1 = build_norm_layer(norm_cfg, embed_dims)[1]
@@ -275,13 +279,23 @@ class TransformerEncoderLayer(BaseModule):
             dropout_layer=dict(type='DropPath', drop_prob=drop_path_rate),
             act_cfg=act_cfg)
 
+        self.with_cp = with_cp
+
     def forward(self, x, hw_shape):
-        x = self.attn(self.norm1(x), hw_shape, identity=x)
-        x = self.ffn(self.norm2(x), hw_shape, identity=x)
+
+        def _inner_forward(x):
+            x = self.attn(self.norm1(x), hw_shape, identity=x)
+            x = self.ffn(self.norm2(x), hw_shape, identity=x)
+            return x
+
+        if self.with_cp and x.requires_grad:
+            x = cp.checkpoint(_inner_forward, x)
+        else:
+            x = _inner_forward(x)
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class MixVisionTransformer(BaseModule):
     """The backbone of Segformer.
 
@@ -319,6 +333,8 @@ class MixVisionTransformer(BaseModule):
         pretrained (str, optional): model pretrained path. Default: None.
         init_cfg (dict or list[dict], optional): Initialization config dict.
             Default: None.
+        with_cp (bool): Use checkpoint or not. Using checkpoint will save
+            some memory while slowing down the training speed. Default: False.
     """
 
     def __init__(self,
@@ -339,8 +355,9 @@ class MixVisionTransformer(BaseModule):
                  act_cfg=dict(type='GELU'),
                  norm_cfg=dict(type='LN', eps=1e-6),
                  pretrained=None,
-                 init_cfg=None):
-        super(MixVisionTransformer, self).__init__(init_cfg=init_cfg)
+                 init_cfg=None,
+                 with_cp=False):
+        super().__init__(init_cfg=init_cfg)
 
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be set at the same time'
@@ -358,8 +375,9 @@ class MixVisionTransformer(BaseModule):
         self.patch_sizes = patch_sizes
         self.strides = strides
         self.sr_ratios = sr_ratios
+        self.with_cp = with_cp
         assert num_stages == len(num_layers) == len(num_heads) \
-            == len(patch_sizes) == len(strides) == len(sr_ratios)
+               == len(patch_sizes) == len(strides) == len(sr_ratios)
 
         self.out_indices = out_indices
         assert max(out_indices) < self.num_stages
@@ -392,6 +410,7 @@ class MixVisionTransformer(BaseModule):
                     qkv_bias=qkv_bias,
                     act_cfg=act_cfg,
                     norm_cfg=norm_cfg,
+                    with_cp=with_cp,
                     sr_ratio=sr_ratios[i]) for idx in range(num_layer)
             ])
             in_channels = embed_dims_i
@@ -414,7 +433,7 @@ class MixVisionTransformer(BaseModule):
                     normal_init(
                         m, mean=0, std=math.sqrt(2.0 / fan_out), bias=0)
         else:
-            super(MixVisionTransformer, self).init_weights()
+            super().init_weights()
 
     def forward(self, x):
         outs = []

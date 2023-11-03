@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from mmcv.cnn import ConvModule
-from mmcv.utils.parrots_wrapper import SyncBatchNorm
+from mmengine.utils.dl_utils.parrots_wrapper import SyncBatchNorm
 
 
 def _conv_has_norm(module, sync_bn):
@@ -20,3 +20,12 @@ def to_cuda(module, data):
         for i in range(len(data)):
             data[i] = data[i].cuda()
     return module, data
+
+
+def list_to_cuda(data):
+    if isinstance(data, list):
+        for i in range(len(data)):
+            data[i] = list_to_cuda(data[i])
+        return data
+    else:
+        return data.cuda()
