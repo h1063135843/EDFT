@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'VaihingenDataset'
-data_root = 'G:/Datasets/Vaihingen'
+data_root = 'data/Vaihingen'
 img_norm_cfg = dict(
     mean=[120.476, 81.7993, 81.1927],
     std=[54.8465, 39.3214, 37.9183],
@@ -33,24 +33,29 @@ test_pipeline = [
             dict(type='Collect', keys=['img']),
         ])
 ]
-data = dict(
-    samples_per_gpu=4,
-    workers_per_gpu=4,
-    train=dict(
+
+train_dataloader = dict(
+    batch_size=4,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='InfiniteSampler', shuffle=True),
+    dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/training',
-        ann_dir='annotations/training',
-        pipeline=train_pipeline),
-    val=dict(
+        data_prefix=dict(
+            img_path='images/training', seg_map_path='images/training'),
+        pipeline=train_pipeline))
+val_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
-        pipeline=test_pipeline),
-    test=dict(
-        type=dataset_type,
-        data_root=data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
+        data_prefix=dict(img_path='images/validation', seg_map_path='annotations/validation'),
         pipeline=test_pipeline))
+test_dataloader = val_dataloader
+
+val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
+test_evaluator = val_evaluator

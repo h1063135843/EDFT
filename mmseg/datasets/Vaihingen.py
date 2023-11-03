@@ -1,17 +1,8 @@
-from .builder import DATASETS
-from .custom import CustomDataset
-from collections import OrderedDict
-from functools import reduce
-
-import mmcv
-import numpy as np
-from mmcv.utils import print_log
-from prettytable import PrettyTable
-
-from mmseg.core import eval_metrics, pre_eval_to_metrics
+from mmseg.registry import DATASETS
+from .basesegdataset import BaseSegDataset
 
 @DATASETS.register_module()
-class VaihingenDataset(CustomDataset):
+class VaihingenDataset(BaseSegDataset):
     """ISPRS_2d_semantic_labeling_Vaihingen dataset.
 
     In segmentation map annotation for Vaihingen, 0 stands for the sixth class: Clutter/background

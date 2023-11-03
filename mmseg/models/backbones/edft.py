@@ -4,18 +4,16 @@ from numpy import append
 
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
-from mmcv.cnn import (Conv2d, Scale, build_activation_layer, build_norm_layer,
-                      constant_init, normal_init, trunc_normal_init)
-from mmcv.cnn.bricks.drop import build_dropout
+from mmcv.cnn import build_norm_layer, Scale
 from mmcv.cnn.bricks.transformer import MultiheadAttention
-from mmcv.runner import BaseModule, ModuleList, Sequential, _load_checkpoint
+from mmengine.model import BaseModule, ModuleList
+from mmengine.model.weight_init import (constant_init, normal_init,
+                                        trunc_normal_init)
 
-from ...utils import get_root_logger
-from ..builder import BACKBONES
-from ..utils import PatchEmbedOld as PatchEmbed
+from mmseg.registry import MODELS
+
 from ..utils import nchw_to_nlc, nlc_to_nchw, SelfAttentionBlock
-from ..utils import CBAM, SELayer
+from ..utils import PatchEmbed, CBAM, SELayer
 
 from .mit import MixVisionTransformer
 from .twins import SVT
@@ -155,18 +153,6 @@ class DepthDownsample(BaseModule):
                 ))
             in_channels = embed_dims_i
 
-    def init_weights(self):
-        if isinstance(self.pretrained, str):
-            logger = get_root_logger()
-            checkpoint = _load_checkpoint(
-                self.pretrained, logger=logger, map_location='cpu')
-            if 'state_dict' in checkpoint:
-                state_dict = checkpoint['state_dict']
-            else:
-                state_dict = checkpoint
-
-            self.load_state_dict(state_dict, False)
-
     def forward(self, x):
         outs = []
         for downsample in self.layers:
@@ -176,7 +162,7 @@ class DepthDownsample(BaseModule):
         return outs
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class EDFT(BaseModule):
 
     def __init__(self,
@@ -257,7 +243,6 @@ class EDFT(BaseModule):
                     constant_init(m.bias, 0)
         # load pretrained model if exists
         self.color.init_weights()
-        # self.depth.init_weights()
 
     def forward(self, x):
         c = x[:, :3]
