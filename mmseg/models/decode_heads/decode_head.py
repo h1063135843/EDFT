@@ -5,9 +5,11 @@ from typing import List, Tuple
 
 import torch
 import torch.nn as nn
-from mmcv.runner import BaseModule, auto_fp16, force_fp32
+from mmengine.model import BaseModule
+from torch import Tensor
 
 from mmseg.structures import build_pixel_sampler
+from mmseg.utils import ConfigType, SampleList
 from ..builder import build_loss
 from ..losses import accuracy
 from ..utils import resize
@@ -157,7 +159,6 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             self.dropout = nn.Dropout2d(dropout_ratio)
         else:
             self.dropout = None
-        self.fp16_enabled = False
 
     def extra_repr(self):
         """Extra repr."""
@@ -231,7 +232,6 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
 
         return inputs
 
-    @auto_fp16()
     @abstractmethod
     def forward(self, inputs):
         """Placeholder of forward function."""

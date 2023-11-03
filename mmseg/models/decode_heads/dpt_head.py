@@ -4,10 +4,12 @@ import math
 import torch
 import torch.nn as nn
 from mmcv.cnn import ConvModule, Linear, build_activation_layer
-from mmcv.runner import BaseModule
+from mmengine.model import BaseModule
 
+from mmseg.registry import MODELS
 from ..utils import resize
 from .decode_head import BaseDecodeHead
+
 
 class ReassembleBlocks(BaseModule):
     """ViTPostProcessBlock, process cls_token in ViT backbone output and
