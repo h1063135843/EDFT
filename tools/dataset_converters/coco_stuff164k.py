@@ -5,10 +5,12 @@ import shutil
 from functools import partial
 from glob import glob
 
-import mmcv
 import numpy as np
+from mmengine.utils import (mkdir_or_exist, track_parallel_progress,
+                            track_progress)
 from PIL import Image
 
+COCO_LEN = 123287
 
 clsID_to_trID = {
     0: 0,

@@ -44,7 +44,7 @@ def cross_entropy(pred,
     # If given, has to be a Tensor of size C element-wise losses
     loss = F.cross_entropy(
         pred,
-        label.long(),
+        label,
         weight=class_weight,
         reduction='none',
         ignore_index=ignore_index)
@@ -90,6 +90,7 @@ def _expand_onehot_labels(labels, label_weights, target_shape, ignore_index):
             bin_labels[inds[0], labels[valid_mask]] = 1
 
     valid_mask = valid_mask.unsqueeze(1).expand(target_shape).float()
+
     if label_weights is None:
         bin_label_weights = valid_mask
     else:
@@ -302,6 +303,7 @@ class CrossEntropyLoss(nn.Module):
         by simple sum operation. In addition, if you want this loss item to be
         included into the backward graph, `loss_` must be the prefix of the
         name.
+
         Returns:
             str: The name of this loss item.
         """

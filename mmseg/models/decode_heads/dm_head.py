@@ -105,9 +105,11 @@ class DMHead(BaseDecodeHead):
     """
 
     def __init__(self, filter_sizes=(1, 3, 5, 7), fusion=False, **kwargs):
-        super(DMHead, self).__init__(**kwargs)
         super().__init__(**kwargs)
+        assert isinstance(filter_sizes, (list, tuple))
+        self.filter_sizes = filter_sizes
         self.fusion = fusion
+        dcm_modules = []
         for filter_size in self.filter_sizes:
             dcm_modules.append(
                 DCM(filter_size,

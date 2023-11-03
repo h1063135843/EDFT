@@ -4,10 +4,12 @@ import os.path as osp
 import shutil
 from functools import partial
 
-import mmcv
 import numpy as np
+from mmengine.utils import (mkdir_or_exist, track_parallel_progress,
+                            track_progress)
 from PIL import Image
 from scipy.io import loadmat
+
 COCO_LEN = 10000
 
 clsID_to_trID = {

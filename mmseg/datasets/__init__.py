@@ -39,7 +39,6 @@ from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
                          ResizeShortestEdge, ResizeToMultiple, RGB2Gray,
                          SegRescale)
 from .voc import PascalVOCDataset
-from .Vaihingen import VaihingenDataset
 
 # yapf: enable
 __all__ = [

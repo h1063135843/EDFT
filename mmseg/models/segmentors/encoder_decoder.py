@@ -94,7 +94,11 @@ class EncoderDecoder(BaseSegmentor):
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
+
+        assert self.with_decode_head
+
     def _init_decode_head(self, decode_head: ConfigType) -> None:
+        """Initialize ``decode_head``"""
         self.decode_head = MODELS.build(decode_head)
         self.align_corners = self.decode_head.align_corners
         self.num_classes = self.decode_head.num_classes
