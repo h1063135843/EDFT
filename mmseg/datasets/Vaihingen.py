@@ -10,11 +10,11 @@ class VaihingenDataset(BaseSegDataset):
     The ``img_suffix`` is fixed to '.tif' and ``seg_map_suffix`` is fixed to
     '.tif'.
     """
-    CLASSES = (
-        'imp surf', 'building', 'low_veg', 'tree', 'car','clutter')
-
-    PALETTE = [[255, 255, 255], [0, 0, 255], 
-    [0, 255, 255],[0, 255, 0], [255, 255, 0], [255, 0, 0]]
+    METAINFO = dict(
+        classes=('impervious_surface', 'building', 'low_vegetation', 'tree',
+                 'car', 'clutter'),
+        palette=[[255, 255, 255], [0, 0, 255], [0, 255, 255], [0, 255, 0],
+                 [255, 255, 0], [255, 0, 0]])
 
     def __init__(self, **kwargs):
         super(VaihingenDataset, self).__init__(
