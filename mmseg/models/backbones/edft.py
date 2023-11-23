@@ -140,14 +140,24 @@ class DepthDownsample(BaseModule):
         self.layers = ModuleList()
         for i in range(num_stages):
             embed_dims_i = embed_dims * self.num_heads[i]
+            # self.layers.append(
+            #     PatchEmbed(
+            #         in_channels=in_channels,
+            #         embed_dims=embed_dims_i,
+            #         kernel_size=patch_sizes[i],
+            #         stride=strides[i],
+            #         padding=patch_sizes[i] // 2 if overlap else 0,
+            #         pad_to_patch_size=False,
+            #         norm_cfg=norm_cfg,
+            #         # concat=True
+            #     ))
             self.layers.append(
                 PatchEmbed(
                     in_channels=in_channels,
                     embed_dims=embed_dims_i,
                     kernel_size=patch_sizes[i],
                     stride=strides[i],
-                    padding=patch_sizes[i] // 2 if overlap else 0,
-                    pad_to_patch_size=False,
+                    padding='corner',
                     norm_cfg=norm_cfg,
                     # concat=True
                 ))
